@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from app.config import settings
+from app.core.config import settings
 
 # One engine per process. It owns the connection pool — connections are
 # reused across requests instead of being opened/closed each time.

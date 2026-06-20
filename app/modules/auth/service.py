@@ -1,9 +1,9 @@
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.user import User
-from app.schemas.user import UserCreate
-from app.repositories import user_repository
+from app.modules.auth.models import User
+from app.modules.auth.schemas import UserCreate
+from app.modules.auth import repository
 from sqlalchemy.exc import IntegrityError
 
 
@@ -18,7 +18,7 @@ async def signup(db: AsyncSession, payload: UserCreate) -> User:
     )
 
     try:
-        await user_repository.create(db, user)
+        await repository.create(db, user)
         await db.commit()
     except IntegrityError:
         await db.rollback()
