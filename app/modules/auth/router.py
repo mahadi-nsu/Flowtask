@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.modules.auth import service
-from app.modules.auth.schemas import UserCreate, UserRead
+from app.modules.auth.schemas import (
+    LoginRequest,
+    TokenResponse,
+    UserCreate,
+    UserRead,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,3 +25,9 @@ async def verify_email(
 ):
     await service.verify_email(db, token)
     return {"message": "Email verified successfully."}
+
+
+@router.post("/login", response_model=TokenResponse)
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    access_token = await service.login(db, payload)
+    return TokenResponse(access_token=access_token)

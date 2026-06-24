@@ -7,10 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.email import send_email
-from app.core.security import hash_password
+from app.core.security import (
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 from app.modules.auth import repository
 from app.modules.auth.models import EmailVerificationToken, User
-from app.modules.auth.schemas import UserCreate
+from app.modules.auth.schemas import LoginRequest, UserCreate
 
 # How long a verification link stays valid.
 VERIFICATION_TOKEN_TTL_HOURS = 24
@@ -86,3 +90,21 @@ async def verify_email(db: AsyncSession, token_str: str) -> User:
     await repository.delete_email_token(db, token)  # one-time use
     await db.commit()
     return user
+
+
+async def login(db: AsyncSession, payload: LoginRequest) -> str:
+    user = await repository.get_by_email(db, payload.email)
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
+
+    if user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email address has not been verified.",
+        )
+
+    return create_access_token(str(user.id))
+    
