@@ -19,5 +19,11 @@ class Settings(BaseSettings):
     # Environment
     environment: str = "development"
 
+    # EMAIL
+    smtp_host: str
+    smtp_port: int
+    email_from: str
+    app_base_url: str
+
 
 settings = Settings()
